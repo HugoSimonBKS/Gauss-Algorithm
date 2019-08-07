@@ -29,6 +29,14 @@ soon
 
 run the executable on windows, else compile and run it
 
+## Built With
+
+* [Atom](https://atom.io) - The text editor used
+
+## Versioning
+
+Every version is uploaded here on github so fell free to download older versions
+
 ## Authors
 
 ***[Hugo SIMON](https://github.com/HugoSimonBKS)***
