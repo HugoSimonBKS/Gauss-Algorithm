@@ -4,6 +4,9 @@
 #include<string.h>
 #include<assert.h>
 
+/*
+	Structure that contains the matrix, i = height and j = width
+*/
 typedef struct
 {
 	int i;
@@ -11,33 +14,46 @@ typedef struct
 	double **tab;
 } grille;
 
-grille * alloc_grille(int longueur, int largeur)
+/*
+	function that malloc the required space to the matrix
+*/
+
+grille * alloc_grille(int height, int width)
 {
 	int i;
-	longueur++;
+	height++;
 	grille * g;
-	g = (grille*)malloc(sizeof(grille)*(longueur+1)*largeur);
-	g->tab = (double**)malloc(longueur * sizeof(*g->tab));
-	for(i = 0; i<longueur;i++)
-	{
-		g->tab[i] = (double*)malloc (largeur * sizeof(**g->tab));
-	}
-	g->i = largeur;
-	g->j = longueur;
-	return g;
-} 
+	g = (grille*)malloc(sizeof(grille)*(height+1)*width);
+	g->tab = (double**)malloc(height * sizeof(*g->tab));
 
-grille * attribution_grille(grille *g, char fichier[])
+	for(i = 0; i<height;i++)
+	{
+		g->tab[i] = (double*)malloc (width * sizeof(**g->tab));
+	}
+
+	g->i = width;
+	g->j = height;
+	return g;
+}
+
+/*
+	read the file and attribute the values in the matrix
+*/
+
+grille * attribution_grille(grille *g, char file[])
 {
-	printf("%s \n",fichier);
+	printf("%s \n",file);
 	FILE * F = NULL;
-	F = fopen(fichier, "r");
+	F = fopen(file, "r");
+
 	if (F != NULL)
 	{
 		int j;
 		int i;
+
 		for(i=0;i<g->i;i++)
 		{
+
 			for(j=0;j<g->j;j++)
 			{
 				fscanf(F,"%lf",&g->tab[i][j]);
@@ -46,117 +62,151 @@ grille * attribution_grille(grille *g, char fichier[])
 		fclose(F);
 		return g;
 	}
+
 	else
 	{
 		assert(0);
 	}
 }
-void afficher_grille(grille *g)
+
+/*
+	function to display the matrix
+*/
+
+void display_matrix(grille *g)
 {
 	int nbr = 1;
 	int i;
 	int j;
+
 	for (i=0;i<g->i;i++)
 	{
 		printf("\t     x%d     \t",nbr);
 		nbr++;
 	}
 	printf("\t     b     \t\n");
+
 	for(i=0;i<((g->i)*3);i++)
 	{
+
 		for(j=0;j<g->j;j++)
 		{
+
 			if(i%3==1)
 				printf("|\t%lf\t|",g->tab[i/3][j]);
+
 			else if(i%3==0)
 				printf("________________________");
+
 			else
 				printf("|\t\t\t|");
 		}
 		printf("\n");
 	}
-	
 	printf("\n\n\n\n");
 }
+
+/*
+	function that apply the pivot of gauss until it cant or it is done
+*/
+
 void pivot_gauss(grille *g)
 {
-	int lignepiv = 0;
+	int pivline = 0;
 	int i;
 	int j;
-	int colonnepiv = lignepiv;
+	int pivcol = pivline;
 	double pivot;
 	double coeff;
-	for(lignepiv = 0;lignepiv < g->i;lignepiv++)
-		for(i=0;i<g->i;i++)
+	for(pivline = 0; pivline < g->i; pivline++)
+	{
+
+		for(i=0; i<g->i; i++)
 		{
-			if(g->tab[lignepiv][lignepiv])
-				pivot = g->tab[lignepiv][lignepiv];
+
+			if(g->tab[pivline][pivline])
+				pivot = g->tab[pivline][pivline];
+
 			else
 			{
-				while (colonnepiv < g->j-1 && !pivot)		
+				while (pivcol < g->j-1 && !pivot)
 				{
-					pivot = g->tab[lignepiv][colonnepiv];
-					colonnepiv++;
+					pivot = g->tab[pivline][pivcol];
+					pivcol++;
 				}
 			}
-			coeff = ((double)g->tab[i][lignepiv]/(double)pivot);
-/*			if (coeff < 0)
-				coeff = coeff * -1*/
+
+			coeff = ((double)g->tab[i][pivline]/(double)pivot);
+
+			if (coeff < 0)
+				coeff = coeff * -1
+
 			for(j=0;j<g->j;j++)
 			{
+
 				if(pivot)
 				{
-					if (i != lignepiv)
+
+					if (i != pivline)
 					{
-//						printf("pivot : %lf ",pivot);
-//						printf("val : %lf ",i);
-//						printf("autre val %lf",j);
-//						printf("coeff %lf",coeff);
-						g->tab[i][j] = (g->tab[i][j]) -(g->tab[lignepiv][j] * coeff);
+						g->tab[i][j] = (g->tab[i][j]) -(g->tab[pivline][j] * coeff);
+
 						if(g->tab[i][j] < 0.01 && g->tab[i][j] > -0.01)
 							g->tab[i][j] = 0;
 					}
 				}
 			}
-			afficher_grille(g);
-//			printf("pivot : %lf ",pivot);
-//			printf(" case : %d ", g->tab[i][j]);
-//			printf("nouvelle case %d ",g->tab[i+1][j]);
-//			printf(" coeff : %lf ",coeff);
-			colonnepiv = lignepiv;
-			/*	lignepiv++;
-			printf(" étape %d \n",i);
-			*/
+
+			display_matrix(g);
+			pivcol = pivline;
 		}
+	}
 }
+
+/*
+	Test if there is a solution to the matrix
+*/
+
 void test_impossible(grille * g)
 {
 int i, j, impossible = 0;
+
 	for(i=0;i<g->i;i++)
 	{
+
 		for(j=0;j<g->j-1;j++)
 		{
+
 			if(g->tab[i][j] == 0)
 				impossible++;
 		}
+
 		if (impossible == g->j-1 && g->tab[i][g->j-1] !=0)
-			printf("c'est impossible, BUT CAN YOU DO THIS \n");
+			printf("There is no solutions \n");
 		impossible=0;
-	}	
+	}
 }
-void calcul_inconnues(grille * g)
+
+/*
+	function used at the end to display the value of each variable
+*/
+
+void calc_unknown(grille * g)
 {
-	double inconnues;
+	double unknow;
 	int x = 0, i, j;
+
 	for(i=0;i<g->i;i++)
 	{
+
 		for(j=0;j<g->j;j++)
 		{
+
 			if(g->tab[j][i] != 0)
 			{
-				inconnues = (g->tab[i][g->i])/(g->tab[j][i]);
+				unknow = (g->tab[i][g->i])/(g->tab[j][i]);
 				x++;
-				printf("inconnue%d : %lf \n",x,inconnues);
+				printf("unknow variable%d : %lf \n",x,unknow);
 			}
 		}
 	}
@@ -165,11 +215,11 @@ void calcul_inconnues(grille * g)
 int main()
 {
 	grille * g = alloc_grille(4,4);
-	char * fichier = "grilleGauss.txt";
-	attribution_grille(g, fichier);
-	afficher_grille(g);
+	char * file = "grilleGauss.txt";
+	attribution_grille(g, file);
+	display_matrix(g);
 	pivot_gauss(g);
-	calcul_inconnues(g);
+	calc_unknown(g);
 	test_impossible(g);
 	return(0);
 }
